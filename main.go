@@ -15,6 +15,7 @@ Main entry point for Boldly Go GraphQL Application.
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -90,7 +91,7 @@ func main() {
 		Pretty:   true,
 		GraphiQL: true,
 	})
-	router.Handle("/graphql", h)
+	router.Handle("/graphql", authHeaderMiddleware(h))
 	// add CORS acceptance to all requests
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
@@ -100,4 +101,13 @@ func main() {
 	// start app
 	fmt.Println(fmt.Sprintf("App Running on Port %s", appPortKey))
 	log.Fatal(http.ListenAndServe(appPortKey, handlers.LoggingHandler(os.Stdout, corsHandler)))
+}
+
+// Add the Authorization header to the context passed to the GraphQL Handler
+func authHeaderMiddleware(next *handler.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "Authorization", r.Header.Get("Authorization"))
+
+		next.ContextHandler(ctx, w, r)
+	})
 }

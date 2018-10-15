@@ -38,10 +38,9 @@ func (b *boldlyGoGraphQL) buildQuery() {
 					"bankId": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},
-					"token": &graphql.ArgumentConfig{Type: graphql.String},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					_, err := boldlygo.AuthService().ValidateToken(p.Args["token"]) // validate auth token exists
+					_, err := boldlygo.AuthService().ValidateToken(p.Context.Value("Authorization")) // validate auth token exists and is valid
 					if err != nil {
 						return nil, err
 					}

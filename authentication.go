@@ -69,7 +69,6 @@ func (a *authSvc) VerifyPwd(hashedPwd, pwd string) bool {
 func (a *authSvc) BuildToken(user User) (*string, *int64, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": user.Email,
-		"name":  user.Name,
 	})
 	signedToken, err := token.SignedString(a.authSecret) // sign the token
 	if err != nil {
@@ -110,12 +109,12 @@ func (a *authSvc) ValidateToken(authHeader interface{}) (interface{}, error) {
 	}
 	// validate token and get claims
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		var decodedToken interface{}
+		var decodedToken map[string]string
 		err = mapstructure.Decode(claims, &decodedToken)
 		if err != nil {
 			return nil, err
 		}
-		return decodedToken, nil
+		return decodedToken["email"], nil
 	}
 	return nil, errors.New("invalid authorization token") // token is not valid, return error
 }

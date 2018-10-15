@@ -102,17 +102,17 @@ var (
 			"bank": &graphql.Field{
 				Type:        BankType,
 				Description: "The Bank record the Account Belongs to",
-				Args: graphql.FieldConfigArgument{
-					"email": &graphql.ArgumentConfig{Type: graphql.NewNonNull(graphql.String)},
-				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					email := p.Args["email"].(string)
+					tokenEmail, err := boldlygo.AuthService().ValidateToken(p.Context.Value("Authorization"))
+					if err != nil || tokenEmail == nil {
+						return nil, nil
+					}
 					if a, ok := p.Source.(*BankAccount); ok {
 						bankId, err := uuid.FromString(a.BankId)
 						if err != nil {
 							return nil, err
 						}
-						return GetBank(email, bankId)
+						return GetBank(tokenEmail.(string), bankId)
 					}
 					return nil, nil
 				},
