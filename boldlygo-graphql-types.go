@@ -102,13 +102,17 @@ var (
 			"bank": &graphql.Field{
 				Type:        BankType,
 				Description: "The Bank record the Account Belongs to",
+				Args: graphql.FieldConfigArgument{
+					"email": &graphql.ArgumentConfig{Type: graphql.NewNonNull(graphql.String)},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					email := p.Args["email"].(string)
 					if a, ok := p.Source.(*BankAccount); ok {
 						bankId, err := uuid.FromString(a.BankId)
 						if err != nil {
 							return nil, err
 						}
-						return GetBank(bankId)
+						return GetBank(email, bankId)
 					}
 					return nil, nil
 				},

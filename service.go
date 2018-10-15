@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	bankUrl = "http://localhost:5002/api/v1/user/4b7b2def-e76e-48bf-993b-8ec2b193b855/bank/{bankId}"
+	bankUrl = "http://localhost:5002/api/v1/user/{email}/bank/{bankId}"
 )
 
 /*
@@ -112,8 +112,9 @@ func Authenticate(email, pwd string) Auth {
 /*
 Utilize the HTTP client to make a REST call to get the Bank info by its PK id
 */
-func GetBank(bankId uuid.UUID) (*Bank, error) {
-	url := strings.Replace(bankUrl, "{bankId}", bankId.String(), -1) // build url
+func GetBank(email string, bankId uuid.UUID) (*Bank, error) {
+	url := strings.Replace(bankUrl, "{email}", email, -1)       // replace email placeholder with passed in email
+	url = strings.Replace(url, "{bankId}", bankId.String(), -1) // replace bankId placeholder with passed in bankId
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
