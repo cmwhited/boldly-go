@@ -2,6 +2,19 @@ package main
 
 import "time"
 
+type Auth struct {
+	Success   bool   `json:"success"`
+	Message   string `json:"message"`
+	Token     string `json:"token"`
+	ExpiresAt int64  `json:"expiresAt"`
+}
+
+type User struct {
+	Email string `json:"email"`
+	Pwd   string `json:"pwd"`
+	Name  string `json:"name"`
+}
+
 type Bank struct {
 	OwningUserId  string `json:"owningUserId"`
 	BankId        string `json:"bankId"`

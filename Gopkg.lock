@@ -35,6 +35,14 @@
   version = "v2.0.0-preview.5"
 
 [[projects]]
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
   digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
   name = "github.com/gorilla/context"
   packages = ["."]
@@ -119,6 +127,17 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:1ecf2a49df33be51e757d0033d5d51d5f784f35f68e5a38f797b2d3f03357d71"
+  name = "golang.org/x/crypto"
+  packages = [
+    "bcrypt",
+    "blowfish",
+  ]
+  pruneopts = "UT"
+  revision = "a92615f3c49003920a58dedcf32cf55022cefb8d"
+
+[[projects]]
+  branch = "master"
   digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
   name = "golang.org/x/net"
   packages = ["context"]
@@ -135,6 +154,7 @@
     "github.com/aws/aws-sdk-go-v2/service/dynamodb",
     "github.com/aws/aws-sdk-go-v2/service/dynamodb/dynamodbattribute",
     "github.com/aws/aws-sdk-go-v2/service/dynamodb/expression",
+    "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
     "github.com/graphql-go/graphql",
@@ -142,6 +162,8 @@
     "github.com/graphql-go/relay",
     "github.com/mitchellh/mapstructure",
     "github.com/satori/go.uuid",
+    "golang.org/x/crypto/bcrypt",
+    "golang.org/x/net/context",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -9,6 +9,22 @@ import (
 
 var (
 	// OUTPUT TYPES
+	AuthType = graphql.NewObject(graphql.ObjectConfig{
+		Name: "Auth",
+		Fields: graphql.Fields{
+			"success":   &graphql.Field{Type: graphql.NewNonNull(graphql.Boolean)},
+			"message":   &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+			"token":     &graphql.Field{Type: graphql.String},
+			"expiresAt": &graphql.Field{Type: graphql.Float},
+		},
+	})
+	UserType = graphql.NewObject(graphql.ObjectConfig{
+		Name: "User",
+		Fields: graphql.Fields{
+			"email": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+			"name":  &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		},
+	})
 	BankType = graphql.NewObject(graphql.ObjectConfig{
 		Name: "Bank",
 		Fields: graphql.Fields{
@@ -154,6 +170,14 @@ var (
 		},
 	})
 	// MUTATION INPUT TYPES
+	UserInputType = graphql.NewInputObject(graphql.InputObjectConfig{
+		Name: "UserInput",
+		Fields: graphql.InputObjectConfigFieldMap{
+			"email": &graphql.InputObjectFieldConfig{Type: graphql.NewNonNull(graphql.String)},
+			"pwd":   &graphql.InputObjectFieldConfig{Type: graphql.NewNonNull(graphql.String)},
+			"name":  &graphql.InputObjectFieldConfig{Type: graphql.NewNonNull(graphql.String)},
+		},
+	})
 	BankAccountInputType = graphql.NewInputObject(graphql.InputObjectConfig{
 		Name:        "BankAccountInput",
 		Description: "The BankAccount input object to use to create/update a BankAccount record",

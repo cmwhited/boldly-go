@@ -33,11 +33,13 @@ type BoldlyGo interface {
 	Initialize()
 	GraphQLSchema() *graphql.Schema
 	DynamoDbSvc() *dynamodb.DynamoDB
+	AuthService() AuthSvc
 }
 
 type boldlyGo struct {
 	schema      *graphql.Schema
 	dynamodbSvc *dynamodb.DynamoDB
+	authsvc     AuthSvc
 }
 
 /*
@@ -51,12 +53,15 @@ func (b *boldlyGo) Initialize() {
 	var (
 		boldlyGoGraphQL BoldlyGoGraphQL = &boldlyGoGraphQL{}
 		awsSvc          AwsConfig       = &awsConf{}
+		auth            AuthSvc         = &authSvc{}
 	)
 	// init services
 	schema := boldlyGoGraphQL.BuildSchema() // build Boldly Go GraphQL Schema
 	b.schema = &schema
 	awsSvc.Init() // build and initialize AWS Services
 	b.dynamodbSvc = awsSvc.DynamoDbSvc()
+	auth.Initialize() // build and initialize Auth Service
+	b.authsvc = auth
 }
 
 func (b *boldlyGo) GraphQLSchema() *graphql.Schema {
@@ -65,6 +70,10 @@ func (b *boldlyGo) GraphQLSchema() *graphql.Schema {
 
 func (b *boldlyGo) DynamoDbSvc() *dynamodb.DynamoDB {
 	return b.dynamodbSvc
+}
+
+func (b *boldlyGo) AuthService() AuthSvc {
+	return b.authsvc
 }
 
 var boldlygo BoldlyGo = &boldlyGo{}

@@ -38,8 +38,13 @@ func (b *boldlyGoGraphQL) buildQuery() {
 					"bankId": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},
+					"token": &graphql.ArgumentConfig{Type: graphql.String},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					_, err := boldlygo.AuthService().ValidateToken(p.Args["token"]) // validate auth token exists
+					if err != nil {
+						return nil, err
+					}
 					bankId := p.Args["bankId"]                       // get passed in bankId from arguments
 					_bankId, err := uuid.FromString(bankId.(string)) // convert the bankId arg to a UUID
 					if err != nil {
@@ -137,7 +142,7 @@ func (b *boldlyGoGraphQL) buildQuery() {
 					if err != nil {
 						return nil, err
 					}
-					return GetAccountTranscation(_acctId, _transactionId) // get a unique BankAccount Transaction by the AccountId and TransactionId
+					return GetAccountTransaction(_acctId, _transactionId) // get a unique BankAccount Transaction by the AccountId and TransactionId
 				},
 			},
 		},
@@ -149,6 +154,41 @@ func (b *boldlyGoGraphQL) buildMutation() {
 	b.mutations = graphql.ObjectConfig{
 		Name: "RootMutation",
 		Fields: graphql.Fields{
+			"authenticate": &graphql.Field{
+				Type:        graphql.NewNonNull(AuthType),
+				Description: "Authenticate the user with the email and password. Returns an auth token",
+				Args: graphql.FieldConfigArgument{
+					"email": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"password": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					email, pwd := p.Args["email"].(string), p.Args["password"].(string)
+					return Authenticate(email, pwd), nil
+				},
+			},
+			"register": &graphql.Field{
+				Type:        UserType,
+				Description: "Register a new user record",
+				Args: graphql.FieldConfigArgument{
+					"user": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(UserInputType),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					user := p.Args["user"]                       // get the User input out of the arguments
+					userMap, ok := user.(map[string]interface{}) // convert the input type to a User
+					if !ok {
+						return nil, errors.New("unable to convert input object to User record")
+					}
+					var u = new(User)                // instantiate user
+					mapstructure.Decode(userMap, &u) // destructure userMap into User
+					return u.Register()              // save user and return
+				},
+			},
 			"saveBankAccount": &graphql.Field{
 				Type:        BankAccountType,
 				Description: "Save a new BankAccount record",

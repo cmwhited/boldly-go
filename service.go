@@ -20,6 +20,96 @@ const (
 )
 
 /*
+Register a new User.
+Hash the password before storing.
+Return the created User record.
+*/
+func (u *User) Register() (*User, error) {
+	hashedPwd, err := boldlygo.AuthService().HashPwd(u.Pwd) // use the AuthSvc to hash the users password
+	if err != nil {
+		return nil, err
+	}
+	u.Pwd = *hashedPwd                              // set new hashed password on user
+	userMap, err := dynamodbattribute.MarshalMap(u) // marshal User to dynamodbattribute map
+	if err != nil {
+		return nil, err
+	}
+	// build item input request
+	input := &dynamodb.PutItemInput{
+		Item:      userMap,
+		TableName: aws.String("Users"),
+	}
+	req := boldlygo.DynamoDbSvc().PutItemRequest(input) // save item to db
+	_, err = req.Send()
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+/*
+Authenticate a user by their email and password.
+
+	Attempt to find the user by the email.
+		- If the user is found; get their hashed password, use the AuthSvc to compare it to the passed in password:
+			- if the passwords match, generate a JWT and return
+			- If the passwords do not match, return an error
+		- If the user cannot be found, return an error
+*/
+func Authenticate(email, pwd string) Auth {
+	req := boldlygo.DynamoDbSvc().GetItemRequest(&dynamodb.GetItemInput{
+		TableName: aws.String("Users"),
+		Key: map[string]dynamodb.AttributeValue{
+			"email": {
+				S: aws.String(email),
+			},
+		},
+	}) // build the request to send to DynamoDB to find a unique user record by the email primary key
+	output, err := req.Send() // send the request to the DynamoDB service; get the output result
+	if err != nil {
+		return Auth{
+			Success: false,
+			Message: "Unable to find user by that email. Please check your email and try again",
+		}
+	}
+	if len(output.Item) == 0 {
+		return Auth{
+			Success: false,
+			Message: "Unable to find user by that email. Please check your email and try again",
+		}
+	}
+	// unmarshal returned map from DynamoDB into a User
+	var user = new(User)
+	err = dynamodbattribute.UnmarshalMap(output.Item, &user)
+	if err != nil {
+		return Auth{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+	// verify that the passed in password matches the saved password for the user
+	if verify := boldlygo.AuthService().VerifyPwd(user.Pwd, pwd); !verify {
+		return Auth{
+			Success: false,
+			Message: "The password submitted does not match this users password. Please check the email and password and try again",
+		}
+	}
+	token, expiry, err := boldlygo.AuthService().BuildToken(*user) // generate token from user
+	if err != nil {
+		return Auth{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+	return Auth{
+		Success:   true,
+		Message:   "Success",
+		Token:     *token,
+		ExpiresAt: *expiry,
+	}
+}
+
+/*
 Utilize the HTTP client to make a REST call to get the Bank info by its PK id
 */
 func GetBank(bankId uuid.UUID) (*Bank, error) {
@@ -407,7 +497,7 @@ func GetAccountTransactions(accountId uuid.UUID) ([]*Transaction, error) {
 /*
 Find a unique BankAccount Transaction record by the accountId and transactionId composite key
 */
-func GetAccountTranscation(accountId, transactionId uuid.UUID) (*Transaction, error) {
+func GetAccountTransaction(accountId, transactionId uuid.UUID) (*Transaction, error) {
 	req := boldlygo.DynamoDbSvc().GetItemRequest(&dynamodb.GetItemInput{
 		TableName: aws.String("Transactions"),
 		Key: map[string]dynamodb.AttributeValue{
